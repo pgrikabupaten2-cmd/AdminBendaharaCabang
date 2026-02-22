@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data Iuran PGRI Sumedang</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="https://ktadigitalpgri.org/assets/dist/img/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #1a5f7a; --secondary: #159895; --accent: #eb455f; }
+        body { background: #f3f4f6; font-family: 'Inter', sans-serif; }
+        .bank-card { background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 20px; color: white; padding: 25px; box-shadow: 0 10px 25px rgba(26, 95, 122, 0.2); }
+        .input-group { background: white; border-radius: 15px; padding: 18px; margin-bottom: 12px; }
+        .btn-pay { background: var(--accent); color: white; width: 100%; padding: 16px; border-radius: 50px; font-weight: bold; }
+        #login-page { position: fixed; inset: 0; background: white; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        #img-preview { width: 100%; border-radius: 10px; margin-top: 10px; border: 2px dashed #ddd; }
+
+/* Menjamin lebar maksimal aplikasi agar tetap ramping di tengah */
+#app-page {
+    max-width: 350px;
+    margin: 0 auto;
+    padding: 10px;
+}
+
+/* Memastikan semua kotak input memiliki tinggi yang sama */
+input, select, label#label-foto, button {
+    height: 48px !important;
+}
+    </style>
+</head>
+<body>
+
+<div id="login-page">
+    <div class="w-full max-w-sm text-center">
+        <img src="https://ktadigitalpgri.org/assets/dist/img/logo.png" class="w-20 mx-auto mb-4">
+
+        <h2 class="text-2xl font-black text-gray-800 mb-2">Bendahara PGRI Cabang</h2>
+        <input type="password" id="pin-input" maxlength="6" class="w-full p-4 border-2 border-gray-100 rounded-2xl mb-4 text-center text-2xl tracking-widest focus:border-blue-500 outline-none" placeholder="Masukan PIN">
+        <button onclick="prosesLogin()" class="btn-pay">Submit</button>
+    </div>
+</div>
+
+<div id="app-page" class="max-w-md mx-auto p-4 hidden">
+    <div class="bank-card mb-6 relative">
+        <h1 class="text-2xl font-black">Input Setoran Iuran</h1>
+        <p class="text-xs opacity-70 mt-1" id="display-tgl"></p>
+    </div>
+
+    <form id="paymentForm">
+        <div class="input-group">
+            <label class="text-[10px] text-gray-400 font-unbold uppercase block mb-2">Data Cabang</label>
+            <input type="date" name="tgl" id="input-tgl" required class="p-3 border rounded-xl w-full mb-3 text-sm">
+            <select name="cabang" required class="p-3 border rounded-xl w-full text-sm">
+                <option value="">Semua Cabang</option>
+                            <option value="Sumedang Utara">Sumedang Utara</option><option value="Sumedang Selatan">Sumedang Selatan</option><option value="Cimalaka">Cimalaka</option><option value="Tanjungsari">Tanjungsari</option><option value="Jatinangor">Jatinangor</option><option value="Situraja">Situraja</option><option value="Cisitu">Cisitu</option><option value="Darmaraja">Darmaraja</option><option value="Cibugel">Cibugel</option><option value="Wado">Wado</option><option value="Jatinunggal">Jatinunggal</option><option value="Jatigede">Jatigede</option><option value="Tomo">Tomo</option><option value="Ujungjaya">Ujungjaya</option><option value="Conggeang">Conggeang</option><option value="Paseh">Paseh</option><option value="Cisarua">Cisarua</option><option value="Ganeas">Ganeas</option><option value="Tanjungkerta">Tanjungkerta</option><option value="Tanjungmedar">Tanjungmedar</option><option value="Buahdua">Buahdua</option><option value="Rancakalong">Rancakalong</option><option value="Pamulihan">Pamulihan</option><option value="Sukasari">Sukasari</option><option value="Cimanggung">Cimanggung</option><option value="Surian">Surian</option>
+                        </select>
+        </div>
+
+        <div class="input-group">
+            <label class="text-[10px] text-gray-400 font-unbold uppercase block mb-2">Jumlah & Nominal</label>
+            <div class="grid grid-cols-2 gap-3">
+                <input type="number" id="jml_agt" name="jml_agt" oninput="hitung()" placeholder="Jml Anggota" required class="p-3 border rounded-xl text-sm">
+
+               <input type="text" id="nom_iuran" name="nom_iuran" 
+           oninput="formatRupiahSetoran(this)" 
+           placeholder="0.000" 
+           class="w-full bg-slate-100 p-4 rounded-2xl text-sm font-bold outline-none">
+</div>
+            </div>
+
+            <div class="mt-4 p-4 bg-blue-50 rounded-xl flex justify-between items-center">
+                <span class="text-[10px] font-bold text-blue-400 uppercase">Total Bayar</span>
+                <span class="text-xl font-black text-blue-800" id="text-total">Rp 0</span>
+                <input type="hidden" name="total_bayar" id="val-total">
+            </div>
+        </div>
+
+<div class="flex flex-col gap-4 max-w-[320px] mx-auto mt-6">
+
+    <div class="input-group">
+        <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Bulan</label>
+        <select name="bulan" required class="w-full bg-slate-100 h-[48px] px-4 rounded-xl text-sm font-bold outline-none border-none">
+            <option value="Januari">Januari</option>
+            <option value="Februari">Februari</option>
+            <option value="Maret">Maret</option>
+            <option value="April">April</option>
+            <option value="Mei">Mei</option>
+            <option value="Juni">Juni</option>
+            <option value="Juli">Juli</option>
+            <option value="Agustus">Agustus</option>
+            <option value="September">September</option>
+            <option value="Oktober">Oktober</option>
+            <option value="November">November</option>
+            <option value="Desember">Desember</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Tahun</label>
+        <select name="tahun" required class="w-full bg-slate-100 h-[48px] px-4 rounded-xl text-sm font-bold outline-none border-none">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+             <option value="2028">2028</option>
+            <option value="2029">2029</option>
+            <option value="2030">2030</option>
+             <option value="2031">2031</option>
+
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Bukti Struk</label>
+        <input type="file" accept="image/*" capture="camera" id="input-foto" required class="hidden">
+        <label for="input-foto" id="label-foto" class="cursor-pointer flex items-center justify-center gap-2 w-full h-[48px] bg-blue-50 text-blue-600 rounded-xl border border-blue-100 hover:bg-blue-100 transition-all">
+            <i class="fas fa-camera text-sm"></i>
+            <span class="text-xs font-bold uppercase">Ambil Foto Struk</span>
+        </label>
+        
+        <div id="preview-area" class="hidden mt-2 text-center">
+            <img id="img-preview" src="" class="w-20 h-20 mx-auto object-cover rounded-lg border shadow-sm">
+        </div>
+    </div>
+
+    <button type="submit" id="btnSubmit" class="w-full h-[50px] bg-blue-600 text-white rounded-xl font-bold uppercase text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all mt-2">
+        Kirim & Lapor WA
+    </button>
+
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyhtrnyZ3X8BJNm2maiC2V06MKAq0r6Fkeg67maSok0moYtO1vGXTjv9fIxcJmn_V2v/exec';
+    const WA_BENDAHARA = "6281321741127"; 
+    const PIN_BENDAHARA = "123456";
+
+    function prosesLogin() {
+        if(document.getElementById('pin-input').value === PIN_BENDAHARA) {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('app-page').classList.remove('hidden');
+            document.getElementById('display-tgl').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('input-tgl').valueAsDate = new Date();
+        } else { alert("PIN SALAH!"); }
+    }
+
+    // Fungsi untuk membuat titik otomatis saat mengetik
+function formatRupiahSetoran(input) {
+    let value = input.value.replace(/[^,\d]/g, '').toString();
+    let split = value.split(',');
+    let sisa  = split[0].length % 3;
+    let rupiah = split[0].substr(0, sisa);
+    let ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+    if (ribuan) {
+        let separator = sisa ? '.' : '';
+        rupiah += separator + ribuan.join('.');
+    }
+    input.value = rupiah;
+    
+    // Panggil fungsi hitung otomatis setiap kali mengetik nominal
+    hitung();
+}
+
+// Fungsi hitung yang sudah dimodifikasi agar paham angka bertitik
+function hitung() {
+    const jml = document.getElementById('jml_agt').value || 0;
+    
+    // Ambil nominal, buang titiknya dulu agar bisa dikali
+    const nomRaw = document.getElementById('nom_iuran').value || "0";
+    const nom = nomRaw.replace(/\./g, ''); 
+    
+    const total = parseInt(jml) * parseInt(nom);
+    
+    // Tampilkan total dengan format titik juga agar bagus dilihat
+    document.getElementById('text-total').innerText = "Rp " + total.toLocaleString('id-ID');
+    document.getElementById('val-total').value = total;
+}
+    document.getElementById('input-foto').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            document.getElementById('img-preview').src = ev.target.result;
+            document.getElementById('preview-area').classList.remove('hidden');
+            // Sembunyikan tombol ambil foto setelah ada gambar
+            document.getElementById('label-foto').classList.add('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+    document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmit');
+        
+        // 1. Loading State
+        btn.innerText = "⏳ MENYIMPAN DATA..."; 
+        btn.disabled = true;
+
+        const file = document.getElementById('input-foto').files[0];
+        let base64Data = "", fileType = "";
+        
+        if (file) {
+            const reader = new FileReader();
+            await new Promise(r => {
+                reader.onload = () => { base64Data = reader.result.split(',')[1]; fileType = file.type; r(); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+const formData = new FormData(e.target);
+const nomClean = document.getElementById('nom_iuran').value.replace(/\./g, '');
+// Timpa nilai nom_iuran di formData dengan yang sudah bersih
+formData.set('nom_iuran', nomClean);       
+        const query = new URLSearchParams(formData).toString();
+
+        // 2. Kirim ke Google Sheets
+        fetch(`${scriptURL}?${query}`, { 
+            method: 'POST', 
+            body: JSON.stringify({ base64: base64Data, type: fileType }) 
+        })
+        .then(res => res.json())
+
+        .then(response => {
+if(response.result === "success") {
+
+const cabang = formData.get('cabang');
+const total = document.getElementById('text-total').innerText;
+const bulan = formData.get('bulan');
+const tahun = formData.get('tahun');
+const periode = bulan + " " + tahun;
+
+const pesan = "LAPORAN IURAN PGRI%0A" +
+"---------------------------%0A" +
+"🏛️ Cabang: " + cabang + "%0A" +
+"💰 Total Bayar: " + total + "%0A" +
+"📅 Periode: " + periode + "%0A" +
+"---------------------------%0A" +
+"✅ Data & Foto Bukti telah tersimpan otomatis di sistem e-Bendahara.";
+
+alert("✅ BERHASIL!\nData sudah tersimpan di sistem.\n\nKlik OK untuk mengirim laporan WhatsApp ke Bendahara.");
+
+e.target.reset();
+document.getElementById('img-preview').src = "";
+document.getElementById('preview-area').classList.add('hidden');
+document.getElementById('text-total').innerText = "Rp 0";
+
+const btn = document.getElementById('btnSubmit');
+btn.innerText = "Kirim & Lapor WA";
+btn.disabled = false;
+ const linkWA = "https://api.whatsapp.com/send?phone=" + WA_BENDAHARA + "&text=" + pesan;
+window.location.assign(linkWA);
+
+} 
+else {
+throw new Error(response.error);
+}
+})
+        .catch(err => { 
+            alert("❌ GAGAL: " + err); 
+            btn.innerText = "Kirim & Lapor WA"; 
+            btn.disabled = false; 
+        });
+    });
+</script>
+</script>
+</body>
+</html>
